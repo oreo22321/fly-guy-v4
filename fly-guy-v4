@@ -1,0 +1,127 @@
+-- スマホ対応FlyモードとNoclip機能のUIスクリプト (ローカルスクリプト用)
+
+-- 変数の設定
+local flySpeed = 50  -- 初期飛行速度
+local flyKey = Enum.KeyCode.E  -- 飛行を開始/停止するキー
+local noclipKey = Enum.KeyCode.N  -- Noclipを開始/停止するキー
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+-- 飛行モードとNoclipの切り替え
+local flying = false
+local noclipping = false
+
+-- UIの作成
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0.2, 0, 0.3, 0)
+mainFrame.Position = UDim2.new(0.8, 0, 0.1, 0)
+mainFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+mainFrame.BorderSizePixel = 2
+mainFrame.Parent = screenGui
+
+local toggleFlyButton = Instance.new("TextButton")
+toggleFlyButton.Size = UDim2.new(1, 0, 0.2, 0)
+toggleFlyButton.Position = UDim2.new(0, 0, 0, 0)
+toggleFlyButton.Text = "Toggle Fly"
+toggleFlyButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+toggleFlyButton.Parent = mainFrame
+
+local increaseSpeedButton = Instance.new("TextButton")
+increaseSpeedButton.Size = UDim2.new(1, 0, 0.2, 0)
+increaseSpeedButton.Position = UDim2.new(0, 0, 0.2, 0)
+increaseSpeedButton.Text = "Increase Speed"
+increaseSpeedButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+increaseSpeedButton.Parent = mainFrame
+
+local decreaseSpeedButton = Instance.new("TextButton")
+decreaseSpeedButton.Size = UDim2.new(1, 0, 0.2, 0)
+decreaseSpeedButton.Position = UDim2.new(0, 0, 0.4, 0)
+decreaseSpeedButton.Text = "Decrease Speed"
+decreaseSpeedButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+decreaseSpeedButton.Parent = mainFrame
+
+local toggleNoclipButton = Instance.new("TextButton")
+toggleNoclipButton.Size = UDim2.new(1, 0, 0.2, 0)
+toggleNoclipButton.Position = UDim2.new(0, 0, 0.6, 0)
+toggleNoclipButton.Text = "Toggle Noclip"
+toggleNoclipButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+toggleNoclipButton.Parent = mainFrame
+
+local collapseButton = Instance.new("TextButton")
+collapseButton.Size = UDim2.new(1, 0, 0.2, 0)
+collapseButton.Position = UDim2.new(0, 0, 0.8, 0)
+collapseButton.Text = "Collapse"
+collapseButton.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+collapseButton.Parent = mainFrame
+
+-- UIの動作設定
+toggleFlyButton.MouseButton1Click:Connect(function()
+    flying = not flying
+    if flying then
+        print("飛行モードオン")
+    else
+        print("飛行モードオフ")
+    end
+end)
+
+increaseSpeedButton.MouseButton1Click:Connect(function()
+    flySpeed = flySpeed + 10
+    print("Fly Speed increased to " .. flySpeed)
+end)
+
+decreaseSpeedButton.MouseButton1Click:Connect(function()
+    flySpeed = flySpeed - 10
+    print("Fly Speed decreased to " .. flySpeed)
+end)
+
+toggleNoclipButton.MouseButton1Click:Connect(function()
+    noclipping = not noclipping
+    if noclipping then
+        humanoid.PlatformStand = true
+        print("Noclipモードオン")
+    else
+        humanoid.PlatformStand = false
+        print("Noclipモードオフ")
+    end
+end)
+
+collapseButton.MouseButton1Click:Connect(function()
+    if mainFrame.Size.Y.Scale == 0.3 then
+        mainFrame.Size = UDim2.new(0.2, 0, 0.1, 0)
+        collapseButton.Text = "Expand"
+    else
+        mainFrame.Size = UDim2.new(0.2, 0, 0.3, 0)
+        collapseButton.Text = "Collapse"
+    end
+end)
+
+-- 飛行の実装
+game:GetService("RunService").RenderStepped:Connect(function()
+    if flying then
+        local moveVector = Vector3.new(0, 0, 0)
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.W) then
+            moveVector = moveVector + (workspace.CurrentCamera.CoordinateFrame.lookVector * flySpeed)
+        end
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.S) then
+            moveVector = moveVector - (workspace.CurrentCamera.CoordinateFrame.lookVector * flySpeed)
+        end
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.A) then
+            moveVector = moveVector - (workspace.CurrentCamera.CoordinateFrame.rightVector * flySpeed)
+        end
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.D) then
+            moveVector = moveVector + (workspace.CurrentCamera.CoordinateFrame.rightVector * flySpeed)
+        end
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then
+            moveVector = moveVector + (Vector3.new(0, flySpeed, 0))
+        end
+        if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftShift) then
+            moveVector = moveVector - (Vector3.new(0, flySpeed, 0))
+        end
+
+        character:SetPrimaryPartCFrame(CFrame.new(character.PrimaryPart.Position + moveVector))
+    end
+end)
